@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style>
+  /*__DYNAMIC_STYLE__*/
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: var(--canvas-width, 1800px);
+    height: var(--canvas-height, 1200px);
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .wrap { width: 900px; }
+  .kicker { font-family: var(--font, system-ui); font-weight: 500; font-size: 20px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent, #a3a3a3); margin-bottom: 28px; text-align: center; }
+  .title { font-family: var(--font, system-ui); font-weight: 500; font-size: 40px; color: #ffffff; text-align: center; margin-bottom: 40px; }
+  ul { list-style: none; display: flex; flex-direction: column; gap: 20px; }
+  li { font-family: var(--font, system-ui); font-weight: 400; font-size: 28px; color: #e5e5e5; display: flex; align-items: center; gap: 16px; }
+  li::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--accent, #a3a3a3); flex-shrink: 0; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="kicker" id="kicker"></div>
+    <div class="title">What we covered</div>
+    <ul id="list"></ul>
+  </div>
+  <script>
+    // DATA.bullets comes straight from script.json's closingBullets — never
+    // hand-duplicate this list into the template separately, or the two can
+    // drift out of sync (see references/script-schema.md).
+    const DATA = "__DATA__"; // replaced with a real JSON literal by render_slides.js — { kicker, bullets: [...] }
+    document.getElementById('kicker').textContent = DATA.kicker || '';
+    document.getElementById('list').innerHTML = DATA.bullets.map((b) => `<li>${b}</li>`).join('');
+  </script>
+</body>
+</html>
