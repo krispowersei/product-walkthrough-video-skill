@@ -5,7 +5,8 @@ One file is the single source of truth for every piece of narration text and the
 ```json
 {
   "voice": "en-US-AndrewMultilingualNeural",
-  "rate": "-6%",
+  "rate": "+13%",
+  "pace": 1.0,
 
   "title": {
     "kicker": "Prototype Demo",
@@ -45,7 +46,8 @@ One file is the single source of truth for every piece of narration text and the
 
 ## Field notes
 
-- **`voice`/`rate`** — an `edge-tts` voice id and rate string (e.g. `"-6%"`). See `narration-voice.md` for how to pick both.
+- **`voice`/`rate`** — an `edge-tts` voice id and rate string. `rate` is voice-specific and exists to hit a *measured* words-per-minute target, not to be chosen for its own sake; see `narration-voice.md`.
+- **`pace`** — optional tempo multiplier, default `1.0`. Set it only when the user actually asks for a faster or slower video. It scales the wpm target (`195 × pace`) and, via `__pace` in `durations.json`, the recording's inter-cue gaps and typing delays. Slide holds deliberately don't scale — reading time isn't narration time.
 - **`title`** — what's shown on screen on the opening slide. Kept separate from `titleNarration` on purpose: the narration paraphrases this conversationally, it never reads it verbatim.
 - **`titleNarration`** — spoken ~1 second into the video, while the opening slide is showing. See `slide-design.md` for the exact timing model this drives.
 - **`parts`** — omit this array (or leave it empty) for a single-flow video: no contents slide, no section slides, the recording runs straight from the opening slide's end into the one continuous flow, and then into the closing slide. When there's more than one part, every part needs an `id` (used as the join key from `cues[].part`), a `kicker` (the "Part N of M" on-screen label), a `title`, and a `narrationIntro`.

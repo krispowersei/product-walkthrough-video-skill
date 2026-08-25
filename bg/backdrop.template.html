@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html><head><style>
+  * { margin: 0; padding: 0; }
+  html, body { width: __CANVAS_WIDTH__px; height: __CANVAS_HEIGHT__px; overflow: hidden; }
+  /* Layered radial gradients tinted with the app's own accent, over a near
+     black base. Soft enough to sit behind a bright product UI without
+     competing with it, and generated rather than fetched so the pipeline has
+     no network dependency and the backdrop always matches the product. */
+  body {
+    background:
+      radial-gradient(1200px 800px at 18% 12%, __ACCENT_DEEP__ 0%, transparent 62%),
+      radial-gradient(1000px 900px at 88% 90%, __ACCENT_SOFT__ 0%, transparent 60%),
+      radial-gradient(900px 700px at 75% 8%, __ACCENT_COOL__ 0%, transparent 65%),
+      linear-gradient(160deg, #14121f 0%, #0e0d16 55%, #171326 100%);
+  }
+</style></head><body></body></html>

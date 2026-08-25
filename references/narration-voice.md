@@ -10,9 +10,17 @@ Run `edge-tts --list-voices` and read the **content category and personality tag
 
 ## Setting the rate
 
-Don't trust the `--rate` flag's number at face value — measure it. Generate one representative sentence, `ffprobe` its duration, divide word count by minutes. Then generate the *whole script* at a candidate rate and re-measure across all of it — the single-sentence number always reads faster than the full-script average, because natural inter-sentence pauses pull the average down. Aim for roughly **165–190 words per minute** across the full script; a Conversation-category voice's baseline is usually brisk, so you'll likely need a negative rate adjustment to land in that range, not a positive one. Generate directly at the chosen rate rather than post-speeding a normal-rate recording with `atempo` — it's audibly different.
+Don't trust the `--rate` flag's number at face value — measure it. Generate one representative sentence, `ffprobe` its duration, divide word count by minutes. Then generate the *whole script* at a candidate rate and re-measure across all of it — the single-sentence number always reads faster than the full-script average, because natural inter-sentence pauses pull the average down. Generate directly at the chosen rate rather than post-speeding a normal-rate recording with `atempo` — it's audibly different.
 
-**If the user asks for a relative change ("a bit faster," "1.15x")**, don't guess a new `--rate` percentage and hope — convert it to a real target the same measured way. Take the *current measured* wpm (not the rate flag's number), multiply by the requested factor to get a target wpm, pick a new candidate rate string, regenerate the full script, and re-measure. Land inside the 165–190 band if the target falls in it; if the requested factor would push it outside that band, say so rather than silently overshooting — a "1.15x faster" request that was already near the top of the band is a case worth flagging, not just complying with literally.
+**The default target is ~195 words per minute** measured across the full script. `gen_audio.py` reports the measured average against that target and says which way to move. Rate strings are voice-specific, so aim at the measured number rather than a percentage — for `en-US-AndrewMultilingualNeural` that landed at `+13%`.
+
+That's brisker than a lone narrator reading to camera would be comfortable at, and **it only works because of what surrounds it**: actions play *under* the narration rather than before or after it (`recording-technique.md`), and a repeated pattern is explained once instead of every time (`narrative-arc.md`). Take the number without those two and it reads as rushed. For a script with little repetition and mostly static screens, measure toward something slower and set `pace` accordingly rather than forcing 195.
+
+**When the user asks for a different tempo** ("a bit faster", "1.2x"), set `pace` in `script.json` rather than hand-picking a rate string. It scales the wpm target (`195 × pace`), and `record.template.js` reads it back out of `durations.json` to scale the inter-cue gaps and typing delays by the same factor. Scaling all three together is the point: speeding only the voice leaves every pause intact, and the pauses are most of what makes a demo drag.
+
+Slide holds deliberately do **not** scale with `pace` — a viewer doesn't read a bulleted list faster because the demo is faster.
+
+If a requested factor would push the target past roughly 210 wpm, say so rather than silently complying: past that the narration starts outrunning the actions it describes, which is the one thing this pacing model depends on.
 
 ## Pronunciation gotchas
 
@@ -35,3 +43,11 @@ Aim for the middle: whole sentences that carry a point of view. State the situat
 ## Timing discipline
 
 Every wait in the recording script is driven by a cue's **measured** audio duration (from `durations.json`, produced by `ffprobe`-ing the real generated clip) — never a guessed `waitForTimeout`, never a sum of assumed durations. See `compositing-pipeline.md` for how this composes with slide timing and the final mix.
+
+### Size the narration to the action, not only the action to the narration
+
+The rule above runs one way: the recording waits as long as the audio takes. The other direction matters just as much and is easy to miss. A cue whose `during` action takes longer than its narration produces silent clicking — the voice stops and the viewer watches the mouse work on its own.
+
+So before generating audio, **estimate each `during` action's real wall-clock cost** (per-character typing delay × length, plus ~0.5s per cursor glide, plus each click's settle) and write a line long enough to cover it. In practice this means some cues get a deliberately longer sentence than they'd otherwise need. One cue filling three state/area-code/quantity rows took about nine seconds of interaction; its first draft read "Add another row and keep going" — four seconds — and had to be rewritten to roughly thirty words.
+
+Lengthening the narration is almost always the right fix. Speeding the action up to match makes it unreadable, and letting the silence stand is the exact failure the `during` phase exists to prevent.

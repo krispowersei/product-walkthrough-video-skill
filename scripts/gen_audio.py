@@ -36,6 +36,17 @@ with open(SCRIPT_PATH) as f:
 
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
+# The measured words-per-minute this pipeline's default pacing lands on. It's
+# brisker than a lone narrator would be comfortable at, and it works because of
+# what surrounds it: actions play under the narration, and a repeated pattern is
+# explained once rather than every time. Adopting the number without those two
+# reads as rushed. See references/narration-voice.md.
+DEFAULT_TARGET_WPM = 195
+
+# Scales the target. >1 faster, <1 slower. Set from script.json's `pace` when
+# the user actually asks for a different tempo; otherwise leave it at 1.
+pace = float(data.get("pace", 1))
+
 
 def collect_narration_items():
     items = []
@@ -85,10 +96,18 @@ async def main():
         print(f"{item['id']}: {dur:.2f}s, {words} words, {wpm:.0f} wpm")
 
     if total_seconds > 0:
-        print(f"\noverall: {total_seconds:.1f}s, {total_words} words, "
-              f"{total_words / (total_seconds / 60):.0f} wpm average "
-              "(aim for 165-190; adjust `rate` in script.json if this is outside that band)")
+        actual = total_words / (total_seconds / 60)
+        target = DEFAULT_TARGET_WPM * pace
+        low, high = target * 0.96, target * 1.04
+        verdict = "on target" if low <= actual <= high else (
+            "SLOWER than target — raise `rate`" if actual < low else
+            "FASTER than target — lower `rate`")
+        print(f"\noverall: {total_seconds:.1f}s, {total_words} words, {actual:.0f} wpm average "
+              f"(target {target:.0f} wpm at pace {pace}: {verdict})")
 
+    # `__pace` rides along in durations.json so record.template.js can scale
+    # its gaps and typing to the same tempo without re-reading script.json.
+    durations["__pace"] = pace
     with open(os.path.join(OUT_DIR, "durations.json"), "w") as f:
         json.dump(durations, f, indent=2)
 

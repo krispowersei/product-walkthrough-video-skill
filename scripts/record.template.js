@@ -19,7 +19,16 @@ const path = require('path');
 const BASE = __dirname;
 const durations = JSON.parse(fs.readFileSync(path.join(BASE, 'durations.json'), 'utf8'));
 
-const BUFFER_MS = 500; // small breathing room after each cue's speech ends
+// `pace` scales the whole recording's tempo, matching the same field in
+// script.json that sets the narration rate. 1.0 is the default feel; >1 is
+// faster. Gaps and typing scale with it deliberately: speeding only the voice
+// leaves every pause intact, and the pauses are what actually make a demo
+// drag. Floors keep a very high pace from becoming unreadable.
+const PACE = durations.__pace || 1;
+const BUFFER_MS = Math.max(220, Math.round(450 / PACE)); // breathing room after each cue's speech ends
+// Per-character typing delay. Long strings get a lower one so a 20-digit
+// field doesn't outlast the sentence describing it — see typeAt below.
+const TYPING_DELAY_MS = Math.max(20, Math.round(60 / PACE));
 // After any action that produces a LARGE visual change (many rows landing at
 // once, a big list refreshing) — not a single field/status flipping — pause
 // this long after confirming the new state exists before treating the cue as
@@ -163,6 +172,14 @@ async function main() {
     await page.fill(selector, text);
     await page.waitForTimeout(150);
   }
+  // Scale the per-character delay down for long strings: a 20-character alias
+  // reads as typing at 60ms, but a 20-digit device id at the same rate runs
+  // past the end of any sentence that would sensibly describe it.
+  function delayFor(text) {
+    if (text.length > 24) return Math.max(18, Math.round(TYPING_DELAY_MS * 0.4));
+    if (text.length > 14) return Math.max(24, Math.round(TYPING_DELAY_MS * 0.75));
+    return TYPING_DELAY_MS;
+  }
   async function typeAt(selector, text, { clear = false } = {}) {
     const { x, y } = await centerOfLocator(page.locator(selector));
     await cursorTo(x, y);
@@ -176,7 +193,7 @@ async function main() {
       await page.fill(selector, '');
       await page.waitForTimeout(150);
     }
-    await page.locator(selector).pressSequentially(text, { delay: 65 });
+    await page.locator(selector).pressSequentially(text, { delay: delayFor(text) });
     await page.waitForTimeout(200);
   }
 
@@ -199,26 +216,49 @@ async function main() {
   const cleanStart = Date.now();
   console.log('preRollMs', cleanStart - recordStart);
 
-  async function cue(id, { pre, post } = {}) {
+  // Three phases, and which one an action belongs in is the single biggest
+  // lever on whether the video feels synced:
+  //
+  //   pre    - runs BEFORE the narration starts, in silence. Reserve it for
+  //            settling (see HEAVY_RENDER_SETTLE_MS), not for anything the
+  //            viewer is meant to watch.
+  //   during - runs WHILE the narration plays. Everything the sentence
+  //            describes goes here: typing, selecting, toggling, moving the
+  //            cursor across the things being named. The cue then absorbs
+  //            whatever narration time is left over. If the action outruns the
+  //            narration the cue simply runs long, which is safe: every offset
+  //            is stamped at its own cue's start.
+  //   post   - runs as the narration ENDS. Reserve it for the click that
+  //            advances to the next screen, so the words lead into the
+  //            transition instead of trailing behind it.
+  //
+  // Without `during`, every multi-second action is structurally silent: `pre`
+  // happens before the voice and `post` happens after it.
+  async function cue(id, { pre, during, post } = {}) {
     if (pre) await pre();
     offsets[id] = Date.now() - cleanStart;
     const waitMs = Math.round(durations[id] * 1000) + BUFFER_MS;
-    await page.waitForTimeout(waitMs);
+    const started = Date.now();
+    if (during) await during();
+    const remaining = waitMs - (Date.now() - started);
+    if (remaining > 0) await page.waitForTimeout(remaining);
     if (post) await post();
   }
 
-  // ---- FILL IN: one `await cue(id, { pre, post })` per cue in script.json,
-  // in the same order, doing whatever Playwright action actually
-  // corresponds to that cue's narration. `pre` runs before the narration
-  // starts (use it to have something already on screen when the voice
-  // begins); `post` runs right as the narration ends (use it for the click
-  // that advances to the next screen). A cue with neither is a pure dwell
-  // beat — see references/recording-technique.md on when that's the right
-  // call. Remember: a menu opening and an item inside it being chosen are
-  // always two separate cues.
+  // ---- FILL IN: one `await cue(id, { pre, during, post })` per cue in
+  // script.json, in the same order, doing whatever Playwright action
+  // corresponds to that cue's narration. See the phase contract on `cue`
+  // above — the short version is that anything the sentence describes goes
+  // in `during`, and only the screen-advancing click goes in `post`.
+  //
+  // A cue with none of the three is a pure dwell beat; a cue whose `during`
+  // only moves the cursor across the things being named is the normal shape
+  // for an explanatory beat. Remember: a menu opening and an item inside it
+  // being chosen are always two separate cues.
   //
   // await cue('c01', { post: async () => clickButtonNamed('Some Button') });
-  // await cue('c02', { post: async () => typeAt('#some-input', 'some value') });
+  // await cue('c02', { during: async () => typeAt('#some-input', 'a name'),
+  //                    post: async () => clickButtonNamed('Continue') });
   // ...
 
   await page.waitForTimeout(800);

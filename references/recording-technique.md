@@ -17,9 +17,31 @@ if (document.readyState === 'loading') {
 
 Route every scripted interaction through helpers that move the cursor to the real element's bounding-box center, wait for the glide to finish, pulse, *then* act — never a bare `page.click()`/`page.fill()` with no cursor movement. See `record.template.js` for the exact helper shapes (`cursorTo`, `centerOfLocator`, `clickLocator`, `typeAt`, etc.).
 
+## Which phase an action belongs in
+
+`cue()` has three phases and choosing between them is the single biggest lever on whether the finished video feels synced:
+
+| Phase | When it runs | What belongs there |
+|---|---|---|
+| `pre` | before the narration, in silence | settling only (see the recorder-lag note below) |
+| `during` | **while the narration plays** | everything the sentence describes: typing, selecting, toggling, moving the cursor across the things being named |
+| `post` | as the narration ends | the click that advances to the next screen |
+
+The split matters because without `during`, every multi-second action is *structurally* silent — `pre` happens before the voice and `post` happens after it, so typing an alias or filling four form rows can only ever play against no narration at all.
+
+Putting the screen-advancing click in `post` is the other half: the words lead *into* the transition rather than trailing behind it, so a cue reads as "here's what I'm about to do" followed by doing it.
+
+If a `during` action outruns its narration the cue simply runs long, which is safe — every offset is stamped at its own cue's start. But it means silence, so the fix belongs in the script: see "size the narration to the action" in `narration-voice.md`.
+
+## The cursor follows the sentence
+
+Beyond parking the cursor on whatever's being named, on an explanatory cue with no click **move it across each thing in the order the narration names them**. If the line is "how many lines you need, and what kind — Standard covers most people, Obscura is the privacy line", glide to the quantity toggle, then Standard, then Obscura, timed under those clauses.
+
+A cue whose `during` only moves the cursor is the normal shape for an explanatory beat — it isn't a dwell with nothing happening, it's the cursor acting as a pointer.
+
 ## Typing vs. pasting
 
-**Default to real per-character typing** (`locator.pressSequentially(text, { delay: ~65 })`, after a real click to focus the field) for anything a user would actually type — form fields, search boxes. An instant `fill()` is indistinguishable on screen from content materializing out of nowhere, which reads as mysterious to a viewer with no idea what just happened.
+**Default to real per-character typing** (`locator.pressSequentially(text, { delay: ~60 })`, after a real click to focus the field — `record.template.js` scales this from `pace` and drops it further for long strings, so a twenty-digit field doesn't outlast the sentence describing it) for anything a user would actually type — form fields, search boxes. An instant `fill()` is indistinguishable on screen from content materializing out of nowhere, which reads as mysterious to a viewer with no idea what just happened.
 
 Reserve instant fill for exactly two cases:
 1. **An actual paste UI** — a "paste data" textarea, a clipboard-style input — and even then, say so in the narration ("I'll paste those straight in"). Don't silently fill a paste-shaped field either; narrate the action even when the mechanic is legitimately instant.
@@ -68,6 +90,7 @@ A demo shows the product, never the prototype's own review scaffolding — a pas
 - **Whatever the narration is talking about must be on screen and pointed at, at the moment it's said.** If a sentence names a screen, be on that screen already, not navigating to it as the words land — reword a "this is the screen where…" line into a forward-looking one and let the *next* cue describe what's now visible. If a sentence names a specific cell/row/field, park the cursor on it while the words play, rather than leaving the cursor wherever the last click happened to leave it.
 - **Scope hover/cursor-target selectors to the layer actually in front.** A drawer or modal sits on top of a page that often has the same markup underneath it — a broad selector matching "the list" can resolve to the list behind an open overlay rather than the one in front. Scope selectors to the overlay's own container when one is open.
 - **Watch for selectors resolving to a hidden node.** A text selector can match an invisible option element rather than the visible control that actually displays it; prefer a selector that only matches visible elements, or target the real interactive control directly.
+- **An icon font breaks exact-text matching.** Menu items commonly render an icon and its label inside the same element. With an icon *font* (Material Symbols and friends) the glyph is real text, so the element's `textContent` is `"restart_altResend activation"` and `getByText('Resend activation', { exact: true })` never resolves — while the same selector without `exact` works fine. Prefer `locator('button').filter({ hasText: '...' })` for menu items.
 
 ## The recording can lag behind the real DOM by several seconds after a heavy re-render
 

@@ -6,7 +6,8 @@
  * changes).
  *
  * Usage:
- *   node compute_offsets.js <script.json> <durations.json> <offsets.json> <pieces.json> <outDir> [--slides-only]
+ *   node compute_offsets.js <script.json> <durations.json> <offsets.json> <pieces.json> <outDir> \
+ *     [--slides-only] [--slides-dir <dir>]
  *
  * Run once with --slides-only right after gen_audio.py, before recording —
  * this gives you slide_durations.json, which tells you exactly how long to
@@ -49,6 +50,11 @@ const CLOSING_DEFAULT_SEC = 6.0; // no narration-timing change requested for clo
 
 const [, , scriptPath, durationsPath, offsetsPath, piecesPath, outDir, ...flags] = process.argv;
 const slidesOnly = flags.includes('--slides-only');
+// Where render_slides.js put the slide clips, so concat_list.txt can name them
+// with a path that actually resolves. Defaults to the same "clips" the rest of
+// the pipeline uses.
+const slidesDirFlagIndex = flags.indexOf('--slides-dir');
+const slidesDir = slidesDirFlagIndex >= 0 ? flags[slidesDirFlagIndex + 1] : 'clips';
 
 if (!scriptPath || !durationsPath || !offsetsPath || !piecesPath || !outDir) {
   console.error('Usage: node compute_offsets.js <script.json> <durations.json> <offsets.json> <pieces.json> <outDir> [--slides-only]');
@@ -152,11 +158,19 @@ for (const piece of resolvedPieces) {
 
 fs.writeFileSync(path.join(outDir, 'global_offsets.json'), JSON.stringify(globalOffsets, null, 2));
 
-const concatLines = resolvedPieces.map((p) => `file '${p.file || `${p.id.replace(':', '_')}.mp4`}'`);
+// Slides get their path from --slides-dir (where render_slides.js wrote them);
+// part clips carry their own `file` in pieces.json. Emitting a bare filename
+// for a slide produces a concat list ffmpeg can't open, and prefixing every
+// line unconditionally double-prefixes the part clips, which already have a
+// path — so the two cases are resolved separately, here, once.
+const concatLines = resolvedPieces.map((p) => {
+  if (p.file) return `file '${p.file}'`;
+  return `file '${path.join(slidesDir, `${p.id.replace(':', '_')}.mp4`)}'`;
+});
 fs.writeFileSync(path.join(outDir, 'concat_list.txt'), concatLines.join('\n') + '\n');
 
 console.log('wrote global_offsets.json:', globalOffsets);
 console.log('wrote concat_list.txt');
 console.log(`total final video duration: ${runningTotalSec.toFixed(2)}s`);
-console.log('(pass this number to mix_audio.py as --total-duration, and double check it against');
-console.log(' the final concatenated video\'s own ffprobe duration once video_silent.mp4 exists)');
+console.log('(mix_audio.py takes this as a NUMBER OF SECONDS, not a file path; prefer passing');
+console.log(' video_silent.mp4\'s own ffprobed duration once it exists, and check it matches this)');
