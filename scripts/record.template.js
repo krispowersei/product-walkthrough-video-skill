@@ -172,9 +172,10 @@ async function main() {
     await page.fill(selector, text);
     await page.waitForTimeout(150);
   }
-  // Scale the per-character delay down for long strings: a 20-character alias
-  // reads as typing at 60ms, but a 20-digit device id at the same rate runs
-  // past the end of any sentence that would sensibly describe it.
+  // Scale the per-character delay down for long strings: a 20-character
+  // project name reads well as typing at 60ms, but a 20-digit reference
+  // number at the same rate runs past the end of any sentence that would
+  // sensibly describe it.
   function delayFor(text) {
     if (text.length > 24) return Math.max(18, Math.round(TYPING_DELAY_MS * 0.4));
     if (text.length > 14) return Math.max(24, Math.round(TYPING_DELAY_MS * 0.75));

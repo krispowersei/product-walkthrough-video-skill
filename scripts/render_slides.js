@@ -13,7 +13,7 @@
  *   {
  *     "canvasWidth": 1800, "canvasHeight": 1200, "fps": 25,
  *     "accentColor": "#6366f1",
- *     "fontFamily": "FKGrotesk, system-ui",   // a full CSS font-family list, not a bare name
+ *     "fontFamily": "AppSans, system-ui",   // a full CSS font-family list, not a bare name
  *     "fontFaceCss": ""   // real @font-face rules if the target app has its own licensed font files, else leave empty
  *   }
  *
@@ -53,7 +53,7 @@ const dynamicStyle = `
   :root {
     --accent: ${style.accentColor || '#a3a3a3'};
     /* NOT quoted: wrapping the whole value turns a font stack like
-       "FKGrotesk, system-ui" into one invalid quoted family name, and every
+       "AppSans, system-ui" into one invalid quoted family name, and every
        slide silently falls back to a serif. style.fontFamily must therefore
        be a valid CSS font-family list, quoting individual names itself if
        any of them need it. */

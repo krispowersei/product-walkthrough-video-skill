@@ -8,14 +8,14 @@ All of this applies from the moment you author `script.json`, not as a later edi
 
 Name each part after something a person is trying to get done. The same content split by feature produces titles that mirror the app's own navigation, which tells a viewer nothing they couldn't get from looking at the nav.
 
-> **Good:** One line at a time · Ordering in bulk · Getting lines live
-> **Feature-shaped:** Single line wizard · Multiple line wizard · Activation drawer
+> **Good:** Getting an invoice out · Chasing what's overdue · Closing the month
+> **Feature-shaped:** Invoice editor · Reminders panel · Reports tab
 
 Same footage, same order. The first is a story; the second is a table of contents.
 
 ## Explain once, then execute
 
-This is the highest-leverage rule here. When a flow repeats with variations — three device types through the same wizard, four record types through the same form — **the first pass gets the full walkthrough and every repeat is named and performed without re-teaching.**
+This is the highest-leverage rule here. When a flow repeats with variations — three plan tiers through the same signup, four record types through the same form — **the first pass gets the full walkthrough and every repeat is named and performed without re-teaching.**
 
 - First time: what this screen is asking, why the choice matters, what happens next.
 - Every time after: name the variation and move. "Same review, so straight through." "That's the batch."
@@ -36,8 +36,8 @@ It costs about four seconds and it changes how everything after it reads: the sp
 
 In a multi-part video, plant a forward reference in an early part and deliver on it later:
 
-> Part 1: "…this last screen is the hand-off to whoever's getting the line, and we'll come back to it properly at the end."
-> Part 3: covers activation in full.
+> Part 1: "…and that last screen is where the invoice actually goes out, which we'll come back to properly at the end."
+> Part 3: covers sending and chasing in full.
 
 One sentence, and three parts stop being three clips that happen to be concatenated. It also earns the right to skim something early — you're not omitting it, you're deferring it.
 
@@ -45,14 +45,14 @@ One sentence, and three parts stop being three clips that happen to be concatena
 
 **At the end of a scenario** — not at the end of every cue — say what is now *true*, rather than what was clicked.
 
-> **State of the world:** "MDM lines hand nothing to a person. Your MDM pushes the profile and the line comes up on its own, so the order just ends."
-> **Click-narrating:** "Click Done to close the order."
+> **State of the world:** "A scheduled report doesn't need anyone to press send. The file lands in the shared drive overnight, so setting it up is the whole job."
+> **Click-narrating:** "Click Done to finish the setup."
 
-> **State of the world:** "Sent. That line's now waiting on the employee to open it and finish setting themselves up."
-> **Click-narrating:** "The invite's been sent. Click Done."
+> **State of the world:** "Sent. It's sitting with their manager now, and nothing moves until someone approves it."
+> **Click-narrating:** "The request has been sent. Click Done."
 
-> **State of the world:** "Twelve numbers, straight out of inventory, and nobody typed a single one of them."
-> **Click-narrating:** "And the twelve lines are listed here."
+> **State of the world:** "Forty rows, straight out of the supplier's own file, and nobody retyped a single one of them."
+> **Click-narrating:** "And the forty rows are listed here."
 
 The click still happens either way. The difference is whether the sentence is about the interaction finishing or about what the product just did — and the second is what the viewer came to find out. It also gives a beat of closure before a section slide interrupts, which is why it belongs at scenario ends specifically.
 

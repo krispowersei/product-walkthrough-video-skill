@@ -27,7 +27,7 @@ Route every scripted interaction through helpers that move the cursor to the rea
 | `during` | **while the narration plays** | everything the sentence describes: typing, selecting, toggling, moving the cursor across the things being named |
 | `post` | as the narration ends | the click that advances to the next screen |
 
-The split matters because without `during`, every multi-second action is *structurally* silent — `pre` happens before the voice and `post` happens after it, so typing an alias or filling four form rows can only ever play against no narration at all.
+The split matters because without `during`, every multi-second action is *structurally* silent — `pre` happens before the voice and `post` happens after it, so typing a project name or filling four form rows can only ever play against no narration at all.
 
 Putting the screen-advancing click in `post` is the other half: the words lead *into* the transition rather than trailing behind it, so a cue reads as "here's what I'm about to do" followed by doing it.
 
@@ -35,7 +35,7 @@ If a `during` action outruns its narration the cue simply runs long, which is sa
 
 ## The cursor follows the sentence
 
-Beyond parking the cursor on whatever's being named, on an explanatory cue with no click **move it across each thing in the order the narration names them**. If the line is "how many lines you need, and what kind — Standard covers most people, Obscura is the privacy line", glide to the quantity toggle, then Standard, then Obscura, timed under those clauses.
+Beyond parking the cursor on whatever's being named, on an explanatory cue with no click **move it across each thing in the order the narration names them**. If the line is "how many seats you need, and which plan — Standard covers most teams, Enterprise adds single sign-on", glide to the seat-count field, then Standard, then Enterprise, timed under those clauses.
 
 A cue whose `during` only moves the cursor is the normal shape for an explanatory beat — it isn't a dwell with nothing happening, it's the cursor acting as a pointer.
 
@@ -90,7 +90,7 @@ A demo shows the product, never the prototype's own review scaffolding — a pas
 - **Whatever the narration is talking about must be on screen and pointed at, at the moment it's said.** If a sentence names a screen, be on that screen already, not navigating to it as the words land — reword a "this is the screen where…" line into a forward-looking one and let the *next* cue describe what's now visible. If a sentence names a specific cell/row/field, park the cursor on it while the words play, rather than leaving the cursor wherever the last click happened to leave it.
 - **Scope hover/cursor-target selectors to the layer actually in front.** A drawer or modal sits on top of a page that often has the same markup underneath it — a broad selector matching "the list" can resolve to the list behind an open overlay rather than the one in front. Scope selectors to the overlay's own container when one is open.
 - **Watch for selectors resolving to a hidden node.** A text selector can match an invisible option element rather than the visible control that actually displays it; prefer a selector that only matches visible elements, or target the real interactive control directly.
-- **An icon font breaks exact-text matching.** Menu items commonly render an icon and its label inside the same element. With an icon *font* (Material Symbols and friends) the glyph is real text, so the element's `textContent` is `"restart_altResend activation"` and `getByText('Resend activation', { exact: true })` never resolves — while the same selector without `exact` works fine. Prefer `locator('button').filter({ hasText: '...' })` for menu items.
+- **An icon font breaks exact-text matching.** Menu items commonly render an icon and its label inside the same element. With an icon *font* (Material Symbols and friends) the glyph is real text, so the element's `textContent` is `"content_copyDuplicate row"` and `getByText('Duplicate row', { exact: true })` never resolves — while the same selector without `exact` works fine. Prefer `locator('button').filter({ hasText: '...' })` for menu items.
 
 ## The recording can lag behind the real DOM by several seconds after a heavy re-render
 
