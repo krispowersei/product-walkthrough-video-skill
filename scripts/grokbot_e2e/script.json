@@ -1,0 +1,5 @@
+{"voice":"en-US-AndrewMultilingualNeural","rate":"+13%","pace":1.0,
+ "title":{"kicker":"Smoke test","text":"Kinro Tickets","subtitle":"Pipeline check, no Claude or Codex involved."},
+ "titleNarration":"Here's a quick check that the walkthrough pipeline runs on Grok Bot.",
+ "cues":[{"id":"c01","text":"First we type a test ticket title."},{"id":"c02","text":"Then we create it, and the card appears."}],
+ "closingBullets":["Typed ticket title","Created Trello card"]}

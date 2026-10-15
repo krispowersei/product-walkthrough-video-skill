@@ -21,3 +21,12 @@ Fork of gaurabhmathure/product-walkthrough-video-skill (MIT). Upstream procedure
 ## Inputs / outputs
 - In: app URL(s), login state, flow description, voice (edge-tts voice id).
 - Out: `<workdir>/*.mp4` (narrated), plus `durations.json`, raw webm, slide PNGs.
+
+## Grok Bot tool mapping
+- Shell commands (`bash` blocks in upstream docs) → run with the **Shell** tool on the box (cwd /workspace).
+- Reading files/references → **Read**; web lookups → **WebFetch**/**WebSearch**.
+- Interactive/logged-in browser steps (e.g. Discord web login) → **computerUse** on the agent desktop; headless capture stays in Playwright via Shell.
+- `AskUserQuestion` / "ask the user" → ask in chat (a subagent reports back to its parent instead). Never invoke `claude` or `codex` CLIs.
+
+## Verified E2E (plain shell)
+`scripts/grokbot_e2e/run.sh [workdir]` → `<workdir>/final.mp4` (default /workspace/demo-studio/work/e2e-smoke). Use it as a working reference for filling in record.template.js.
